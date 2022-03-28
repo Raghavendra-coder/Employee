@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %} Leaves {% endblock %}
+
+{% block content %}
+{% if messages %}
+
+  {% for message in messages %}
+{% if message.tags == 'success' %}
+<div class="alert alert-success mb-0 text-center" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+{% if message.tags == 'info' %}
+<div class="alert alert-info mb-0 text-center" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% if not request.user.is_superuser %}
+<form method="post" class="border p-3 rounded shadow" enctype="multipart/form-data">
+    {% csrf_token %}
+  <div class="row">
+    {% for i in form %}
+    <div class="col-sm-3">
+      <label>{{i.label}}</label>
+      {{ i }}
+      <span class="text-danger f-12">{{ i.errors.as_text }}</span>
+    </div>
+    {% endfor %}
+    <div class="text-end col-sm-3">
+      <input type="submit" class="btn btn-outline-success" value="Apply" name="leave-request">
+    </div>
+    <div class="">
+      <span class="text-danger f-12">{{ form.non_field_errors.as_text }}</span>
+    </div>
+  </div>
+  </form>
+{% endif %}
+<div class="mt-4">
+  <table class="table table-bordered text-center">
+    <tr>
+      <th>Leave request ID</th>
+      {% if request.user.is_superuser %}
+      <th>Employee Name</th>
+      {% endif %}
+      <th>Leave Period</th>
+      <th>Day Count</th>
+      <th>Applied on</th>
+      <th>Attachment</th>
+      <th>Status</th>
+    </tr>
+    {% for i in leaves %}
+    <tr>
+      <td>{{ i.pk }}</td>
+      {% if request.user.is_superuser %}
+      <td>{{ i.user.first_name }} {{ i.user.last_name }}</td>
+      {% endif %}
+      <td>{{ i.start }} - {{ i.end }}</td>
+      <td>{{ i.day_count }}</td>
+      <td>{{ i.created_on.date }}</td>
+      <td>
+      {% if i.attachment %}
+      <a href="{{i.attachment.url }}" class="text-decoration-none" target="_blank">attachment</a>
+      {% endif %}
+      </td>
+      {% if request.user.is_superuser %}
+      <td>
+        {% if i.status == 'P' %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" value="{{ i.pk }}" name="pk">
+          <div class="d-flex">
+          <select class="form-control me-2" style="max-width: 100px" name="status">
+            <option value="P">Pending</option>
+            <option value="A">Approve</option>
+            <option value="R">Reject</option>
+          </select>
+          <input type="submit" class="btn btn-outline-success btn-sm" name="leave-status">
+          </div>
+        </form>
+        {% else %}
+        {{ i.get_status_display }}
+        {% endif %}
+      </td>
+      {% else %}
+      <td>{{ i.get_status_display }}</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="listing-pagination">
+            {% if leaves.has_other_pages %}
+
+				<ul class="pagination justify-content-end">
+					{% if leaves.has_previous %}
+					<li class="page-item">
+					  <a class="page-link" href="?page={{ leaves.previous_page_number }}" aria-label="Previous">
+						<span aria-hidden="true">&laquo;</span>
+					  </a>
+					</li>
+					{% else %}
+					<li class="page-item disabled">
+					  <a class="page-link" href="#" aria-label="Previous">
+						<span aria-hidden="true">&laquo;</span>
+					  </a>
+					</li>
+					{% endif %}
+					{% for i in page_range %}
+					{% if leaves.number == i %}
+					<li class="page-item active"><a class="page-link" href="#"><span> {{ i }}</span></a></li>
+					{% else %}
+					<li class="page-item"><a href="?page={{ i }}" class="page-link">{{ i }}</a></li>
+					{% endif %}
+					{% endfor %}
+					{% if leaves.has_next %}
+					<li class="page-item">
+					  <a class="page-link" href="?page={{ leaves.next_page_number }}" aria-label="Next">
+						<span aria-hidden="true">&raquo;</span>
+					  </a>
+					</li>
+					{% else %}
+					<li class="page-item disabled">
+					  <a class="page-link" href="#" aria-label="Next">
+						<span aria-hidden="true">&raquo;</span>
+					  </a>
+					</li>
+					{% endif %}
+				</ul>
+
+				{% endif %}
+        </div>
+</div>
+
+{% endblock %}

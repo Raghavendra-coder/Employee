@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+{% if messages %}
+
+  {% for message in messages %}
+{% if message.tags == 'success' %}
+<div class="alert alert-success mb-0 text-center" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+{% if message.tags == 'info' %}
+<div class="alert alert-info mb-0 text-center" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}
